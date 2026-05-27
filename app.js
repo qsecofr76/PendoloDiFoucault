@@ -450,7 +450,7 @@ function init() {
     scene.fog = new THREE.FogExp2(0x0a0b10, 0.015);
 
     camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 100);
-    camera.position.set(0, 4, 12);
+    camera.position.set(0, 5.5, 15.5);
 
     // 2. Renderer
     renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
@@ -597,7 +597,7 @@ function updateCameraFocus(mode) {
         case 'globe':
             document.getElementById('focus-globe').classList.add('active');
             controls.target.set(0, 0, 0);
-            animateCamera(new THREE.Vector3(0, 4, 13));
+            animateCamera(new THREE.Vector3(0, 5.5, 15.5));
             state.selectedLatitude = 90;
             break;
             
