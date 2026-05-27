@@ -1,0 +1,176 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Simulatore Pendolo di Foucault 3D</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&family=Orbitron:wght@400;600;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <!-- Fullscreen 3D Canvas -->
+    <div id="canvas-container"></div>
+
+    <!-- UI Overlay -->
+    <header class="app-header">
+        <div class="logo">
+            <span class="logo-icon">🌀</span>
+            <div class="logo-text">
+                <h1>Foucault 3D</h1>
+                <p>Simulatore delle Forze Terrestri</p>
+            </div>
+        </div>
+        <div class="header-status">
+            <div class="status-indicator active"></div>
+            <span>SIMULAZIONE ATTIVA</span>
+        </div>
+    </header>
+
+    <!-- Sidebar controls (Left) -->
+    <aside class="sidebar control-panel">
+        <div class="panel-section">
+            <h2>🌍 CONTROLLO GLOBALE</h2>
+            
+            <div class="control-group">
+                <label for="speed-slider">Velocità Rotazione Terra</label>
+                <div class="slider-container">
+                    <input type="range" id="speed-slider" min="0" max="10000" step="50" value="2000">
+                    <span id="speed-val" class="neon-text">2000x</span>
+                </div>
+                <small class="help-text">Necessaria alta velocità per notare la precessione in tempi brevi.</small>
+            </div>
+
+            <div class="control-group">
+                <label for="pendulum-speed-slider">Frequenza Oscillazione Pendolo</label>
+                <div class="slider-container">
+                    <input type="range" id="pendulum-speed-slider" min="1" max="10" step="0.5" value="4">
+                    <span id="pend-speed-val" class="neon-text">4.0 Hz</span>
+                </div>
+            </div>
+
+            <div class="btn-group">
+                <button id="btn-play-pause" class="btn primary-btn">⏸️ Pausa</button>
+                <button id="btn-reset" class="btn secondary-btn">🔄 Reset</button>
+            </div>
+        </div>
+
+        <div class="panel-section">
+            <h2>🎯 ZOOM & FOCUS TELECAMERA</h2>
+            <div class="focus-grid">
+                <button id="focus-globe" class="btn focus-btn active">🌐 Globo Intero</button>
+                <button id="focus-pole" class="btn focus-btn" data-lat="90">❄️ Polo Nord (90°)</button>
+                <button id="focus-mid" class="btn focus-btn" data-lat="45">🏰 Latitudine 45°</button>
+                <button id="focus-equator" class="btn focus-btn" data-lat="0">☀️ Equatore (0°)</button>
+            </div>
+        </div>
+
+        <div class="panel-section">
+            <h2>📐 VETTORI DI FORZA</h2>
+            <div class="checkbox-group">
+                <label class="custom-checkbox">
+                    <input type="checkbox" id="chk-gravity" checked>
+                    <span class="checkmark chk-grav"></span>
+                    <span>Forza di Gravità (F<sub>g</sub>)</span>
+                </label>
+                <label class="custom-checkbox">
+                    <input type="checkbox" id="chk-tension" checked>
+                    <span class="checkmark chk-tens"></span>
+                    <span>Tensione del Filo (T)</span>
+                </label>
+                <label class="custom-checkbox">
+                    <input type="checkbox" id="chk-coriolis" checked>
+                    <span class="checkmark chk-cor"></span>
+                    <span>Forza di Coriolis (F<sub>c</sub>)</span>
+                </label>
+                <label class="custom-checkbox">
+                    <input type="checkbox" id="chk-path" checked>
+                    <span class="checkmark chk-pth"></span>
+                    <span>Traccia Traiettoria (Ground Path)</span>
+                </label>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Info Panel (Right) -->
+    <aside class="sidebar info-panel">
+        <div class="panel-section selected-pendulum-details">
+            <h2>📊 DATI FISICI IN TEMPO REALE</h2>
+            <div class="detail-header">
+                <h3 id="current-location-title">Polo Nord</h3>
+                <span class="badge" id="current-latitude-badge">90° N</span>
+            </div>
+
+            <div class="data-grid">
+                <div class="data-card">
+                    <span class="data-label">Periodo di Precessione</span>
+                    <span class="data-value" id="val-precession-period">24.0 ore</span>
+                </div>
+                <div class="data-card">
+                    <span class="data-label">Velocità Precessione</span>
+                    <span class="data-value" id="val-precession-speed">15.0° / ora</span>
+                </div>
+                <div class="data-card">
+                    <span class="data-label">Angolo Precessione Attuale</span>
+                    <span class="data-value neon-text" id="val-current-precession">0.00°</span>
+                </div>
+                <div class="data-card">
+                    <span class="data-label">Accelerazione Coriolis Max</span>
+                    <span class="data-value" id="val-coriolis-force">0.00 mm/s²</span>
+                </div>
+            </div>
+        </div>
+
+        <div class="panel-section physics-explanations">
+            <h2>🧠 LA FISICA DI FOUCAULT</h2>
+            <div class="math-box">
+                <p class="formula">ω = Ω · sin(φ)</p>
+                <p class="formula-desc">
+                    La velocità angolare di precessione del piano del pendolo (<strong>ω</strong>) dipende dalla velocità angolare terrestre (<strong>Ω</strong>) e dal seno della latitudine (<strong>φ</strong>).
+                </p>
+            </div>
+            
+            <div class="accordion-item open">
+                <div class="accordion-header">
+                    <h4>Polo Nord (φ = 90°)</h4>
+                </div>
+                <div class="accordion-content">
+                    <p>La Terra ruota esattamente sotto il pendolo. Il piano di oscillazione compie un giro completo di 360° in senso orario (al Polo Nord) ogni 24 ore siderali.</p>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <h4>Latitudine 45° (φ = 45°)</h4>
+                </div>
+                <div class="accordion-content">
+                    <p>La precessione avviene ma a velocità ridotta. Il tempo necessario per completare un giro è di circa 33.9 ore (T = 24 / sin(45°)).</p>
+                </div>
+            </div>
+
+            <div class="accordion-item">
+                <div class="accordion-header">
+                    <h4>Equatore (φ = 0°)</h4>
+                </div>
+                <div class="accordion-content">
+                    <p>Il vettore di rotazione terrestre è ortogonale alla verticale del luogo. La forza di Coriolis orizzontale è nulla: il pendolo non precessa (periodo infinito).</p>
+                </div>
+            </div>
+        </div>
+    </aside>
+
+    <!-- Legend (Bottom overlay) -->
+    <div class="legend-panel">
+        <div class="legend-item"><span class="legend-dot color-fg"></span> Gravità</div>
+        <div class="legend-item"><span class="legend-dot color-ft"></span> Tensione</div>
+        <div class="legend-item"><span class="legend-dot color-fc"></span> Forza di Coriolis</div>
+        <div class="legend-item"><span class="legend-dot color-path"></span> Traiettoria al Suolo</div>
+    </div>
+
+    <!-- Script Loads (Safe for file:// local loading) -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/three@0.128.0/examples/js/controls/OrbitControls.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>
