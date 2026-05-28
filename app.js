@@ -588,6 +588,21 @@ function onWindowResize() {
 function updateCameraFocus(mode) {
     state.activeFocus = mode;
     
+    // Auto-close mobile drawers upon camera focus
+    const ctrlPanel = document.querySelector('.control-panel');
+    const infoPanel = document.querySelector('.info-panel');
+    const mobCtrlBtn = document.getElementById('mobile-toggle-controls');
+    const mobInfoBtn = document.getElementById('mobile-toggle-info');
+    
+    if (ctrlPanel && ctrlPanel.classList.contains('mobile-open')) {
+        ctrlPanel.classList.remove('mobile-open');
+        if (mobCtrlBtn) mobCtrlBtn.classList.remove('active');
+    }
+    if (infoPanel && infoPanel.classList.contains('mobile-open')) {
+        infoPanel.classList.remove('mobile-open');
+        if (mobInfoBtn) mobInfoBtn.classList.remove('active');
+    }
+
     // Deactivate all focus buttons
     document.querySelectorAll('.focus-btn').forEach(btn => btn.classList.remove('active'));
 
@@ -751,6 +766,36 @@ function setupUIControls() {
             pendulums.forEach(p => p.trailLine.visible = false);
         }
     });
+
+    // Mobile UI Triggers
+    const mobCtrlBtn = document.getElementById('mobile-toggle-controls');
+    const mobInfoBtn = document.getElementById('mobile-toggle-info');
+    const ctrlPanel = document.querySelector('.control-panel');
+    const infoPanel = document.querySelector('.info-panel');
+
+    if (mobCtrlBtn && mobInfoBtn) {
+        mobCtrlBtn.addEventListener('click', () => {
+            const isOpen = ctrlPanel.classList.toggle('mobile-open');
+            mobCtrlBtn.classList.toggle('active', isOpen);
+            
+            // Auto-close info panel if open
+            if (isOpen) {
+                infoPanel.classList.remove('mobile-open');
+                mobInfoBtn.classList.remove('active');
+            }
+        });
+
+        mobInfoBtn.addEventListener('click', () => {
+            const isOpen = infoPanel.classList.toggle('mobile-open');
+            mobInfoBtn.classList.toggle('active', isOpen);
+            
+            // Auto-close control panel if open
+            if (isOpen) {
+                ctrlPanel.classList.remove('mobile-open');
+                mobCtrlBtn.classList.remove('active');
+            }
+        });
+    }
 }
 
 // -------------------------------------------------------------
